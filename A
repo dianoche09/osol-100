@@ -1,0 +1,89 @@
+// Main page for the DexScanner UI
+import Head from 'next/head';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+export default function Home() {
+  const [coins, setCoins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    // Fetch data from local or external API
+    const fetchCoins = async () => {
+      try {
+        // Replace with your API endpoint or data source
+        const response = await axios.get('/api/coins');
+        setCoins(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching coin data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchCoins();
+  }, []);
+
+  const filteredCoins = coins.filter(
+    (coin) =>
+      coin.name.toLowerCase().includes(search.toLowerCase()) ||
+      coin.ticker.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div>
+      <Head>
+        <title>DexScanner</title>
+        <meta name="description" content="A dexscanner for tracking coins" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold text-center mb-6">DexScanner</h1>
+
+        <input
+          type="text"
+          placeholder="Search coins..."
+          className="w-full p-2 border border-gray-300 rounded mb-4"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <table className="table-auto w-full border-collapse border border-gray-400">
+            <thead>
+              <tr>
+                <th className="border border-gray-300 px-4 py-2">Coin Name</th>
+                <th className="border border-gray-300 px-4 py-2">Ticker</th>
+                <th className="border border-gray-300 px-4 py-2">Market Cap</th>
+                <th className="border border-gray-300 px-4 py-2">Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCoins.map((coin, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">{coin.name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{coin.ticker}</td>
+                  <td className="border border-gray-300 px-4 py-2">${coin.marketCap.toLocaleString()}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <a
+                      href={coin.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </main>
+    </div>
+  );
+}
